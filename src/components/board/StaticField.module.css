@@ -1,0 +1,41 @@
+/*
+ * The SSR static dot field behind the hero (docs/DESIGN.md §4.9). The dots are an SVG mask over an ink-coloured box
+ * so the colour stays a token; the mask tile is 72 × 128 cells and is scaled by the board's own pitch formula (§4.2)
+ * so the field is pitch-true on every viewport before any JS runs.
+ */
+.field {
+  --sf-pitch: calc(100vw / 72);
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-color: var(--ink);
+  opacity: 0.9;
+  -webkit-mask-repeat: repeat;
+  mask-repeat: repeat;
+  -webkit-mask-position: 0 0;
+  mask-position: 0 0;
+  -webkit-mask-size: calc(72 * var(--sf-pitch)) calc(128 * var(--sf-pitch));
+  mask-size: calc(72 * var(--sf-pitch)) calc(128 * var(--sf-pitch));
+  transition:
+    opacity 200ms var(--ease-wipe),
+    visibility 0s linear 200ms;
+}
+
+@media (min-width: 48rem) {
+  .field {
+    --sf-pitch: calc(100vw / 120);
+  }
+}
+
+@media (min-width: 64rem) {
+  .field {
+    --sf-pitch: clamp(5px, calc(100vw / 192), 7px);
+  }
+}
+
+/* the board's first frame replaces the field: html[data-board] takes "live" or "still" (contract 1), either hides it */
+html[data-board] .field {
+  opacity: 0;
+  visibility: hidden;
+}

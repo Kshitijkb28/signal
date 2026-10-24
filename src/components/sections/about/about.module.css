@@ -1,0 +1,166 @@
+/* About — docs/DESIGN.md §7.2 */
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+.header,
+.lead,
+.body {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+.body {
+  margin-top: 40px;
+}
+
+/* U1's `.now-cell` draws the 2 px signal rule and the gap */
+.now {
+  max-width: 48ch;
+  margin-top: 32px;
+}
+.nowLine {
+  margin: 0;
+}
+.nowLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  justify-self: start;
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+.icon {
+  width: 1em;
+  height: 1em;
+}
+
+.summary {
+  margin: 0;
+  max-width: 44ch;
+  font-size: var(--t-1);
+  line-height: 1.3;
+}
+.summary2 {
+  margin: 20px 0 0;
+  max-width: 64ch;
+}
+
+/* facts: a real table laid out as 1 × 4 cells (2 × 2 from 360 px); ARIA roles keep the table semantics */
+.facts {
+  display: block;
+  width: 100%;
+  margin-top: 40px;
+  border-collapse: collapse;
+}
+.facts tbody {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+.facts tr {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 16px;
+  background: var(--paper-2);
+}
+.facts th,
+.facts td {
+  display: block;
+  padding: 0;
+  text-align: left;
+}
+.facts td {
+  font-size: var(--t-1);
+  font-weight: 500;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+/* inline in the value's sentence; the vertical padding only grows its hit box to 44 px (inline padding never moves lines) */
+.factLink {
+  padding-block: 12px;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+@media (min-width: 22.5rem) {
+  .facts tbody {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* stats: three ruled cells, odometer numerals */
+.stats {
+  list-style: none;
+  margin: 40px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 16px 12px;
+  background: var(--paper);
+}
+.value {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  font-family: var(--font-martian), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 2rem;
+  font-weight: 700;
+  font-stretch: 112.5%;
+  line-height: 1;
+}
+.suffix {
+  font-family: var(--font-archivo), system-ui, sans-serif;
+  font-size: var(--t-small);
+  font-weight: 500;
+  font-stretch: 100%;
+  color: var(--ink-2);
+}
+.statLabel {
+  font-size: var(--t-small);
+  font-weight: 500;
+  line-height: 1.3;
+}
+.caption {
+  font-family: var(--font-martian), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--t-label);
+  line-height: 1.4;
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 64rem) {
+  .grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: 24px;
+  }
+  .lead {
+    grid-column: 1 / 6;
+  }
+  .body {
+    grid-column: 7 / -1;
+    margin-top: 32px;
+  }
+  .stat {
+    padding: 24px 20px;
+  }
+  .value {
+    font-size: 4rem;
+  }
+}

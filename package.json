@@ -1,0 +1,38 @@
+{
+  "name": "kshitij-portfolio-v2",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3100",
+    "build": "next build",
+    "start": "next start -p 3100",
+    "lint": "eslint",
+    "build:static": "STATIC_EXPORT=1 next build",
+    "icons": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/make-icons.mjs",
+    "verify:overflow": "node scripts/verify/overflow.mjs",
+    "verify:bands": "node scripts/verify/bands.mjs",
+    "verify:contrast": "node scripts/verify/contrast.mjs",
+    "verify:lighthouse": "node scripts/verify/lighthouse.mjs"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "gsap": "^3.15.0",
+    "lucide-react": "^1.57.0",
+    "next": "16.4.1",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@tailwindcss/turbopack": "^4",
+    "@types/node": "^24.19.2",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.1",
+    "playwright-core": "^1.64.1",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vitest": "^5.0.4"
+  }
+}

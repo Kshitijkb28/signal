@@ -1,0 +1,96 @@
+/* Stack — docs/DESIGN.md §7.5: the departure board. Phones: label row + word tiles; lg: 56 px cell rows. */
+
+.board {
+  list-style: none;
+  margin: 40px 0 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  transition: background-color 120ms var(--ease-wipe);
+}
+/* row tint on hover (fine pointers) and while an item inside has keyboard focus */
+@media (hover: hover) {
+  .row:hover {
+    background-color: var(--signal-soft);
+  }
+}
+.row:focus-within {
+  background-color: var(--signal-soft);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+}
+.index {
+  min-width: 2ch;
+  font-size: var(--t-mono);
+  color: var(--ink-2);
+}
+.group {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 8px;
+}
+.items > li {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+/* each tile sits inside a 44 px row; referenced tiles are 44 px links with a 1 px signal underline */
+.item {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.link {
+  box-shadow: inset 0 -1px 0 var(--signal);
+}
+.spacer {
+  display: none;
+}
+
+@media (min-width: 64rem) {
+  .row {
+    display: grid;
+    grid-template-columns: 3rem 11rem minmax(0, 1fr);
+    align-items: center;
+    gap: 0 16px;
+    min-height: 56px;
+    padding: 0;
+  }
+  .head {
+    display: contents;
+  }
+  .items {
+    gap: 0;
+  }
+  .items > li {
+    min-height: 56px;
+  }
+  .item {
+    min-height: 0;
+  }
+  .spacer {
+    display: inline-flex;
+  }
+}

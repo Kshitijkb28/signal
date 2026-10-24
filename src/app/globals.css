@@ -1,0 +1,1102 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------
+   Signal — design tokens (docs/DESIGN.md §3). Day is the default; night is attribute-driven
+   (html[data-theme="night"]), never prefers-color-scheme. Radii are 0 everywhere; discs are the only circles.
+   ------------------------------------------------------------------ */
+:root {
+  --paper: #f3efe7;
+  --paper-2: #e9e4da;
+  --line: #cfc9bc;
+  --ink: #121212;
+  --ink-2: #514d47;
+  --ink-3: #5f5b52;
+  --signal: #1f2fd3;
+  --signal-soft: #d7dbff;
+
+  /* board cell pitch (docs/DESIGN.md §4.2): phones 100vw / 72, tablets 100vw / 120, desktop clamp(5px, 100vw / 192, 7px);
+     the board overwrites it with the measured value once it is sized */
+  --pitch: calc(100vw / 72);
+  /* dotted-grid origin; Board.tsx syncs it once to the board's cell origin */
+  --grid-x: 0px;
+  --grid-y: 0px;
+  /* the exposed tape strip left of the Experience sheet (≥ 64rem) */
+  --strip-w: 56px;
+  --gutter: 16px;
+  --sheet-pad: 40px;
+  --header-h: 72px;
+
+  /* phones: 17.2vw keeps BHARDWAJ (Archivo 800, wdth 88 %) inside the 288 px content box at 320 (18vw ran 10 px over) */
+  --t-hero: 17.2vw;
+  --t-3: clamp(2.2rem, 1.4rem + 3.6vw, 4.2rem);
+  --t-2: clamp(1.6rem, 1.25rem + 1.6vw, 2.4rem);
+  --t-1: clamp(1.2rem, 1.1rem + 0.5vw, 1.45rem);
+  --t-body: 0.96875rem;
+  --t-small: 0.9rem;
+  --t-label: 0.72rem;
+  --t-mono: 0.8rem;
+
+  --ease-reveal: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-wipe: cubic-bezier(0.45, 0, 0.55, 1);
+  --ease-flap-in: cubic-bezier(0.55, 0, 1, 0.45);
+  --ease-settle: cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* power4.out */
+  --ease-odometer: cubic-bezier(0.23, 1, 0.32, 1);
+  /* the 200 ms token swap after the theme wave */
+  --theme-tx: background-color 200ms var(--ease-wipe), color 200ms var(--ease-wipe), border-color 200ms var(--ease-wipe);
+}
+
+@media (min-width: 22.5rem) {
+  :root {
+    --t-body: 1rem;
+  }
+}
+@media (min-width: 25rem) {
+  :root {
+    --gutter: 20px;
+  }
+}
+@media (min-width: 40rem) {
+  :root {
+    --gutter: 24px;
+  }
+}
+@media (min-width: 48rem) {
+  :root {
+    --pitch: calc(100vw / 120);
+  }
+}
+@media (min-width: 64rem) {
+  :root {
+    --pitch: clamp(5px, calc(100vw / 192), 7px);
+    --gutter: 40px;
+    --sheet-pad: 64px;
+    --t-hero: clamp(3rem, 11vw, 10.5rem);
+    --t-body: 1.0625rem;
+  }
+}
+@media (min-width: 80rem) {
+  :root {
+    --gutter: 64px;
+  }
+}
+
+html[data-theme="night"] {
+  --paper: #101010;
+  --paper-2: #1a1a1a;
+  --line: #2a2a2a;
+  --ink: #ede8de;
+  --ink-2: #b5afa4;
+  --ink-3: #8e897d;
+  --signal: #7f8bff;
+  --signal-soft: #1e2566;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-signal: var(--signal);
+  --color-signal-soft: var(--signal-soft);
+  --font-archivo: var(--font-archivo), system-ui, sans-serif;
+  --font-martian: var(--font-martian), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --breakpoint-xs: 25rem;
+  --ease-reveal: var(--ease-reveal);
+  --ease-wipe: var(--ease-wipe);
+  --text-hero: var(--t-hero);
+  --text-step-3: var(--t-3);
+  --text-step-2: var(--t-2);
+  --text-step-1: var(--t-1);
+  --text-body: var(--t-body);
+  --text-small: var(--t-small);
+  --text-label: var(--t-label);
+  --text-mono: var(--t-mono);
+}
+
+@layer base {
+  html {
+    background: var(--paper);
+    color: var(--ink);
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: var(--header-h);
+  }
+  html[data-theme="night"] {
+    color-scheme: dark;
+  }
+  html,
+  body {
+    overflow-x: clip;
+  }
+  body {
+    font-family: var(--font-archivo), system-ui, sans-serif;
+    font-size: var(--t-body);
+    line-height: 1.6;
+    min-height: 100svh;
+    -webkit-tap-highlight-color: transparent;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 200ms var(--ease-wipe), color 200ms var(--ease-wipe);
+  }
+  ::selection {
+    background: var(--signal-soft);
+    color: var(--ink);
+  }
+  :focus-visible {
+    outline: 2px solid var(--signal);
+    outline-offset: 3px;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  a,
+  button,
+  [role="button"] {
+    touch-action: manipulation;
+  }
+  button {
+    cursor: pointer;
+  }
+  section {
+    scroll-margin-top: var(--header-h);
+  }
+  canvas {
+    display: block;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Component layer (U1). Everything here lives in Tailwind's `components` layer so utilities passed through
+   `className` (w-full, px-0 …) still win. Motion holds are keyed on html[data-js][data-motion="full"]: the
+   pre-paint script sets data-js only for JS users with motion on, so no-JS, calm and reduced-motion users
+   get final states straight from the server. Held elements go through three states (useEnter.ts):
+   "pending" (server-rendered: held, with a 3 s CSS safety timer that reveals it should JS never arrive),
+   "armed" (hydrated: held, no timer — the observer will release it, so the enter motion survives however
+   late the element scrolls in) and "done" (entered: the transition / animation plays).
+   ------------------------------------------------------------------ */
+@layer components {
+  /* ---------- layout primitives ---------- */
+  .container-x {
+    width: 100%;
+    max-width: 1280px;
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+
+  /* the 12-column sheet grid: 16 px gaps on phones, 24 px from lg */
+  .grid-12 {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: 16px;
+  }
+
+  .mono {
+    font-family: var(--font-martian), ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  .label {
+    font-family: var(--font-martian), ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: var(--t-label);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-2);
+  }
+
+  /* opt-in token transition for anything that paints its own paper / ink / rules */
+  .theme-tx {
+    transition: var(--theme-tx);
+  }
+
+  main {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ---------- sheets ---------- */
+  /* an opaque ruled sheet scrolling over the machine; the dotted grid sits on the board's cell pitch */
+  .sheet {
+    position: relative;
+    z-index: 1;
+    background-color: var(--paper);
+    background-image: radial-gradient(circle at 50% 50%, var(--line) 0.75px, transparent 0.8px);
+    background-size: var(--pitch) var(--pitch);
+    background-position: var(--grid-x) var(--grid-y);
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    padding-block: var(--sheet-pad);
+    scroll-margin-top: var(--header-h);
+    transition: var(--theme-tx);
+  }
+  /* the top rule is a pseudo so it can draw scaleX 0 → 1 (600 ms expo.out) once, at the 85 % line */
+  .sheet::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-color: var(--ink);
+    transform-origin: 0 50%;
+    transition: transform 600ms var(--ease-reveal), background-color 200ms var(--ease-wipe);
+    pointer-events: none;
+  }
+  html[data-js][data-motion="full"] .sheet {
+    border-top-color: transparent;
+  }
+  html[data-js][data-motion="full"] .sheet:is([data-in="pending"], [data-in="armed"])::before {
+    transform: scaleX(0);
+  }
+  html[data-js][data-motion="full"] .sheet[data-in="pending"]::before {
+    animation: rule-safety 1ms linear 3s forwards;
+  }
+  /* a sheet that paints nothing itself (Projects): `.panel` children carry the paper, windows stay transparent */
+  .sheet--clear {
+    background-color: transparent;
+    background-image: none;
+  }
+  .panel {
+    background-color: var(--paper);
+    background-image: radial-gradient(circle at 50% 50%, var(--line) 0.75px, transparent 0.8px);
+    background-size: var(--pitch) var(--pitch);
+    background-position: var(--grid-x) var(--grid-y);
+    transition: var(--theme-tx);
+  }
+  /* the tape strip: absolutely positioned child of `.sheet--strip`, exposed left of the sheet from lg */
+  .strip {
+    display: none;
+  }
+
+  /* transparent band between sheets where the board narrates */
+  .gap {
+    position: relative;
+    z-index: 0;
+    height: 24svh;
+    min-height: 128px;
+    max-height: 220px;
+  }
+
+  /* the fixed machine behind everything */
+  .board-root {
+    position: fixed;
+    inset: 0;
+    height: 100lvh;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 40;
+    pointer-events: none;
+  }
+  .site-header > * {
+    pointer-events: auto;
+  }
+
+  .skip-link {
+    position: fixed;
+    top: max(12px, env(safe-area-inset-top));
+    left: 50%;
+    z-index: 100;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    transform: translate(-50%, -200%);
+    background: var(--ink);
+    color: var(--paper);
+    padding: 12px 16px;
+    font-family: var(--font-martian), ui-monospace, monospace;
+    font-size: var(--t-label);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .skip-link:focus-visible {
+    transform: translate(-50%, 0);
+  }
+
+  /* ---------- sheet header band: [odometer index][flap h2][annotation] ---------- */
+  .sheet-header {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas: "index title";
+    align-items: center;
+    column-gap: 16px;
+    min-height: 56px;
+    padding-block: 8px;
+    border-bottom: 1px solid var(--line);
+    transition: border-color 200ms var(--ease-wipe);
+  }
+  .sheet-header__index {
+    grid-area: index;
+    font-size: clamp(1rem, 0.9rem + 0.4vw, 1.2rem);
+    color: var(--ink);
+  }
+  .sheet-header__title {
+    grid-area: title;
+    margin: 0;
+    min-width: 0;
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: 1;
+    text-wrap: initial;
+  }
+  .sheet-header__title:focus {
+    outline-offset: 6px;
+  }
+  .sheet-header__note {
+    grid-area: note;
+    display: none;
+    margin: 0;
+    min-width: 0;
+  }
+
+  /* ---------- inverse-video wipe: ::before sweeps in from the left (180 ms), text to paper at 90 ms, exits right ---------- */
+  .wipe {
+    position: relative;
+    isolation: isolate;
+    transition: color 0s linear 90ms, background-color 200ms var(--ease-wipe), border-color 200ms var(--ease-wipe);
+  }
+  .wipe::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-color: var(--ink);
+    transform: scaleX(0);
+    transform-origin: 100% 50%;
+    transition: transform 180ms var(--ease-wipe), background-color 200ms var(--ease-wipe);
+    pointer-events: none;
+  }
+  /* muted children (labels) that must also go to paper under the block */
+  .wipe .wipe-muted {
+    color: var(--ink-2);
+    transition: color 0s linear 90ms;
+  }
+  .wipe:focus-visible,
+  .wipe:focus-visible .wipe-muted {
+    color: var(--paper);
+  }
+  /* keyboard focus inverts like hover; its ring is paper, 5 px inside the ink block (≥ 15:1 in both themes) — the signal
+     ring would sit on ink wherever the block extends past the box (text buttons, link rows, menu rows) */
+  .wipe:focus-visible {
+    outline-color: var(--paper);
+    outline-offset: -5px;
+  }
+  .wipe:focus-visible::before {
+    transform: scaleX(1);
+    transform-origin: 0 50%;
+  }
+  @media (hover: hover) {
+    .wipe:hover,
+    .wipe:hover .wipe-muted {
+      color: var(--paper);
+    }
+    .wipe:hover::before {
+      transform: scaleX(1);
+      transform-origin: 0 50%;
+    }
+  }
+
+  /* ---------- buttons: ink = 1 px ink rectangle, primary = signal fill / paper text, text = underlined link ---------- */
+  .btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+    min-height: 48px;
+    min-width: 0;
+    padding-inline: clamp(12px, 2.5vw + 4px, 20px);
+    font-weight: 500;
+    font-size: clamp(0.9375rem, 0.85rem + 0.45vw, 1.0625rem);
+    line-height: 1.2;
+    letter-spacing: -0.005em;
+    color: var(--ink);
+    background-color: var(--paper);
+    border: 1px solid var(--ink);
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn > svg {
+    width: 1.1em;
+    height: 1.1em;
+    flex: none;
+  }
+  .btn--primary {
+    color: var(--paper);
+    background-color: var(--signal);
+    border-color: var(--signal);
+  }
+  .btn--text {
+    padding-inline: 0;
+    background-color: transparent;
+    border-color: transparent;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.3em;
+  }
+  .btn--text::before {
+    inset: 0 -0.375rem;
+  }
+  .btn:active {
+    background-color: var(--paper-2);
+    transition-duration: 0s;
+  }
+  .btn--primary:active {
+    background-color: var(--ink);
+    border-color: var(--ink);
+  }
+  .btn--text:active {
+    background-color: transparent;
+  }
+
+  /* ---------- ruled link rows (56 px, 1 px --line rule, ArrowUpRight slot) ---------- */
+  .link-rows {
+    border-top: 1px solid var(--line);
+    transition: border-color 200ms var(--ease-wipe);
+  }
+  .link-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "label icon"
+      "value icon";
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 2px;
+    min-height: 56px;
+    padding-block: 10px;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink);
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .link-row::before {
+    inset: 0 -8px;
+  }
+  .link-row__label {
+    grid-area: label;
+  }
+  .link-row__value {
+    grid-area: value;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font-weight: 500;
+    font-size: var(--t-body);
+    line-height: 1.3;
+  }
+  .link-row__icon {
+    grid-area: icon;
+    width: 20px;
+    height: 20px;
+  }
+  .link-row:active {
+    background-color: var(--paper-2);
+    transition-duration: 0s;
+  }
+
+  /* ---------- odometer: one column per digit, 0–9 stacked, translateY to the digit ---------- */
+  .odometer {
+    display: inline-flex;
+    font-family: var(--font-martian), ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-weight: 700;
+    font-stretch: 112.5%;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .odometer__digits {
+    display: inline-flex;
+  }
+  .odometer__digit {
+    display: block;
+    height: 1em;
+    overflow: hidden;
+  }
+  .odometer__col {
+    display: flex;
+    flex-direction: column;
+    transform: translateY(calc(var(--d, 0) * -1em));
+    transition: transform 700ms var(--ease-odometer);
+  }
+  .odometer__col > span {
+    display: block;
+    height: 1em;
+    line-height: 1;
+  }
+  /* held at 0 until it enters view, then rolls to the digit */
+  html[data-js][data-motion="full"] .odometer:is([data-roll="pending"], [data-roll="armed"]) .odometer__col {
+    transform: translateY(0);
+  }
+  html[data-js][data-motion="full"] .odometer[data-roll="pending"] .odometer__col {
+    animation: odometer-safety 1ms linear 3s forwards;
+  }
+
+  /* ---------- dot meter: 25 SVG ellipses; each flips scaleY 1 → 0 → final with a fill swap at the midpoint ---------- */
+  .meter {
+    display: block;
+    width: 100%;
+    max-width: 298px;
+    height: auto;
+    overflow: visible;
+  }
+  .meter__dot {
+    fill: var(--dot-fill, none);
+    stroke: var(--line);
+    stroke-width: 1;
+    transform: scaleY(var(--dot-ry, 1));
+    transform-box: fill-box;
+    transform-origin: center;
+    transition: fill 200ms var(--ease-wipe), stroke 200ms var(--ease-wipe);
+  }
+  html[data-js][data-motion="full"] .meter:is([data-in="pending"], [data-in="armed"]) .meter__dot {
+    fill: none;
+    transform: scaleY(1);
+  }
+  html[data-js][data-motion="full"] .meter[data-in="pending"] .meter__dot {
+    animation: meter-safety 1ms linear 3s forwards;
+  }
+  html[data-js][data-motion="full"] .meter[data-in="done"] .meter__dot {
+    animation-name: var(--dot-anim, meter-flip);
+    animation-duration: 240ms;
+    animation-delay: calc(var(--i, 0) * 40ms);
+    animation-fill-mode: both;
+  }
+
+  /* ---------- project window: transparent sticky frame; the board prints through it ---------- */
+  .window {
+    position: sticky;
+    top: 68px;
+    align-self: start;
+    width: 100%;
+    height: 42svh;
+    min-height: 180px;
+    overflow: clip;
+    touch-action: pan-y;
+  }
+  .window__frame {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  /* stroke 2 with the outer half clipped by the SVG viewport = a crisp 1 px border inside the box */
+  .window__rect {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 2;
+    transition: stroke 200ms var(--ease-wipe);
+  }
+  html[data-js][data-motion="full"] .window:is([data-in="pending"], [data-in="armed"]) .window__rect {
+    opacity: 0;
+  }
+  html[data-js][data-motion="full"] .window[data-in="pending"] .window__rect {
+    animation: hold-safety 1ms linear 3s forwards;
+  }
+  html[data-js][data-motion="full"] .window[data-in="done"] .window__rect {
+    animation: window-draw 500ms var(--ease-reveal);
+  }
+  /* the static automaton (SSR) on paper; hidden only while live prints run — html[data-board="live"], which the
+     programme sets once a frame is rendered AND printing is possible (renderer active, tier with prints, not calm);
+     every other state ("still": 2d tier, calm still frame) keeps it, and calm always shows it */
+  .window__static {
+    position: absolute;
+    inset: 0;
+    background-color: var(--paper);
+    transition: opacity 200ms var(--ease-wipe), visibility 0s linear 0s, background-color 200ms var(--ease-wipe);
+  }
+  .window__static > svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  html[data-board="live"]:not([data-motion="calm"]) .window__static {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 200ms var(--ease-wipe), visibility 0s linear 200ms;
+  }
+
+  /* ---------- content cells ---------- */
+  /* NOW cell: 2 px signal left rule */
+  .now-cell {
+    display: grid;
+    gap: 8px;
+    padding-left: 16px;
+    border-left: 2px solid var(--signal);
+    transition: border-color 200ms var(--ease-wipe);
+  }
+  /* sunken tag cell: mono 0.8rem on --paper-2 inside a 1 px --line box; no flaps, no radius */
+  .cell {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 4px 10px;
+    font-family: var(--font-martian), ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: var(--t-mono);
+    font-weight: 400;
+    line-height: 1.2;
+    white-space: nowrap;
+    color: var(--ink-2);
+    background-color: var(--paper-2);
+    border: 1px solid var(--line);
+    transition: var(--theme-tx);
+  }
+  .cells {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+  }
+
+  /* facts / education tables: 1 px --line rules; `.table--sunken` fills the cells with --paper-2 */
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+  }
+  .table th,
+  .table td {
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    vertical-align: top;
+    transition: var(--theme-tx);
+  }
+  .table th {
+    font-family: var(--font-martian), ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: var(--t-label);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-2);
+  }
+  .table--sunken th,
+  .table--sunken td {
+    background-color: var(--paper-2);
+  }
+  .table__label {
+    display: block;
+    margin-bottom: 6px;
+    font-family: var(--font-martian), ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: var(--t-label);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-2);
+  }
+  .table__value {
+    display: block;
+    font-weight: 500;
+  }
+
+  /* numbered list with `01 —` mono numerals */
+  .ol-mono {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: item;
+  }
+  .ol-mono > li {
+    counter-increment: item;
+    display: grid;
+    grid-template-columns: 3.25rem minmax(0, 1fr);
+    column-gap: 8px;
+  }
+  .ol-mono > li::before {
+    content: counter(item, decimal-leading-zero) " —";
+    padding-top: 0.25em;
+    font-family: var(--font-martian), ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: var(--t-label);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--ink-2);
+  }
+
+  /* hero helpers: the cue disc flips every 1.2 s; the echo band is 18 board rows tall */
+  .cue {
+    display: block;
+    width: 14px;
+    height: 14px;
+    border: 7px solid var(--ink);
+    border-radius: 50%;
+    animation: cue-flip 1.2s var(--ease-settle) infinite;
+  }
+  .echo-band {
+    height: calc(var(--pitch) * 18);
+  }
+
+  /* ---------- controls (top-right): calm toggle + theme disc ---------- */
+  .controls {
+    position: fixed;
+    top: max(12px, env(safe-area-inset-top));
+    right: max(16px, env(safe-area-inset-right));
+    z-index: 41;
+    display: flex;
+    gap: 8px;
+  }
+  .control {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    color: var(--ink);
+    background-color: var(--paper);
+    border: 1px solid var(--ink);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* pressed: aria-pressed once hydrated, and html[data-motion="calm"] from the pre-paint script before that */
+  .control[aria-pressed="true"],
+  html[data-motion="calm"] .control--calm {
+    color: var(--paper);
+    background-color: var(--ink);
+  }
+  .control:active {
+    background-color: var(--paper-2);
+    transition-duration: 0s;
+  }
+  .control[aria-pressed="true"]:active,
+  html[data-motion="calm"] .control--calm:active {
+    background-color: var(--ink);
+  }
+  /* 3×3 discs; the centre disc is caught mid-flip while motion is on and comes to rest in calm */
+  .control__glyph {
+    display: block;
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+  }
+  .control__glyph .is-mid {
+    transform: scaleY(0.35);
+    transform-box: fill-box;
+    transform-origin: center;
+    transition: transform 320ms var(--ease-settle);
+  }
+  .control[aria-pressed="true"] .control__glyph .is-mid,
+  html[data-motion="calm"] .control--calm .control__glyph .is-mid {
+    transform: scaleY(1);
+  }
+  /* one 14 px disc with two faces; rotateX 180° per toggle, 320 ms back.out */
+  .theme-disc {
+    position: relative;
+    display: block;
+    width: 14px;
+    height: 14px;
+    transform-style: preserve-3d;
+    transition: transform 320ms var(--ease-settle);
+  }
+  html[data-theme="night"] .theme-disc {
+    transform: rotateX(180deg);
+  }
+  /* explicit face while a wave is in flight (set by Controls); same specificity, later wins */
+  html .theme-disc[data-face="day"] {
+    transform: rotateX(0deg);
+  }
+  html .theme-disc[data-face="night"] {
+    transform: rotateX(180deg);
+  }
+  .theme-disc__face {
+    position: absolute;
+    inset: 0;
+    box-sizing: border-box;
+    border-radius: 50%;
+    backface-visibility: hidden;
+  }
+  /* borders survive forced colours where backgrounds do not */
+  .theme-disc__face--a {
+    border: 7px solid currentColor;
+  }
+  .theme-disc__face--b {
+    border: 1px solid currentColor;
+    transform: rotateX(180deg);
+  }
+
+  /* ---------- responsive ---------- */
+  /* the annotation appears from 400 px under the title (the flap cells must never wrap mid-word) and moves to
+     the right of the band once three columns fit */
+  @media (min-width: 25rem) {
+    .sheet-header {
+      grid-template-areas:
+        "index title"
+        "index note";
+      row-gap: 6px;
+    }
+    .sheet-header__note {
+      display: block;
+    }
+  }
+  @media (min-width: 40rem) {
+    .sheet-header {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-areas: "index title note";
+    }
+    .sheet-header__note {
+      justify-self: end;
+      text-align: right;
+      white-space: nowrap;
+    }
+    .link-row {
+      grid-template-columns: minmax(6rem, auto) minmax(0, 1fr) auto;
+      grid-template-areas: "label value icon";
+      column-gap: 16px;
+    }
+  }
+  @media (min-width: 64rem) {
+    .grid-12 {
+      column-gap: 24px;
+    }
+    .gap {
+      height: 28vh;
+      max-height: none;
+    }
+    .sheet-header {
+      column-gap: 24px;
+    }
+    .sheet--strip {
+      margin-left: var(--strip-w);
+    }
+    .strip {
+      display: block;
+      position: absolute;
+      top: -1px;
+      bottom: -1px;
+      left: calc(-1 * var(--strip-w));
+      width: var(--strip-w);
+    }
+    .window {
+      top: 15vh;
+      height: auto;
+      min-height: 0;
+      aspect-ratio: 4 / 3;
+    }
+  }
+}
+
+/* ---------- keyframes ---------- */
+@keyframes rule-safety {
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes odometer-safety {
+  to {
+    transform: translateY(calc(var(--d, 0) * -1em));
+  }
+}
+@keyframes meter-safety {
+  to {
+    fill: var(--dot-fill, none);
+    transform: scaleY(var(--dot-ry, 1));
+  }
+}
+/* fall (power3.in) to the hinge, swap the face, settle (expo.out) */
+@keyframes meter-flip {
+  0% {
+    transform: scaleY(1);
+    fill: none;
+    animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45);
+  }
+  49.9% {
+    fill: none;
+  }
+  50% {
+    transform: scaleY(0);
+    fill: var(--dot-fill, none);
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  100% {
+    transform: scaleY(var(--dot-ry, 1));
+    fill: var(--dot-fill, none);
+  }
+}
+/* the partial disc settles with a back.out overshoot */
+@keyframes meter-flip-partial {
+  0% {
+    transform: scaleY(1);
+    fill: none;
+    animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45);
+  }
+  49.9% {
+    fill: none;
+  }
+  50% {
+    transform: scaleY(0);
+    fill: var(--dot-fill, none);
+    animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  100% {
+    transform: scaleY(var(--dot-ry, 1));
+    fill: var(--dot-fill, none);
+  }
+}
+/* pathLength="1" on the rect makes the dash maths size-independent */
+@keyframes window-draw {
+  from {
+    opacity: 1;
+    stroke-dasharray: 1 1;
+    stroke-dashoffset: 1;
+  }
+  to {
+    opacity: 1;
+    stroke-dasharray: 1 1;
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes cue-flip {
+  0%,
+  72% {
+    transform: rotateX(0deg);
+  }
+  100% {
+    transform: rotateX(180deg);
+  }
+}
+
+/* reveal holds (Reveal.tsx): exist only for JS users with motion on, whatever the data-js value. Server-rendered holds
+   carry a 3 s safety timer that always lets content through; a hold Reveal has armed after hydration waits for the
+   observer instead, so the reveal survives however late the element scrolls in */
+html[data-js][data-motion="full"] .hold {
+  opacity: 0;
+  animation: hold-safety 1ms linear 3s forwards;
+}
+html[data-js][data-motion="full"] .hold[data-hold="armed"] {
+  animation: none;
+}
+
+/* ---------- board menu, document level (BoardMenu.tsx) ----------
+   While html[data-menu="open"]: the page stops scrolling under wheel and touch (`overflow: hidden` keeps programmatic
+   scrolling, which the page turn relies on; `overflow: clip` would not), main fades out over 200 ms then goes
+   visibility: hidden (the board is drawn wherever the sheet is not), and the inert header fades with it so the dialog's
+   own readout-shaped close control takes its place. Calm hides main at once. */
+html[data-menu="open"] {
+  overflow: hidden;
+}
+main {
+  transition: opacity 200ms var(--ease-wipe);
+}
+html[data-menu="open"] main {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 200ms var(--ease-wipe),
+    visibility 0s linear 200ms;
+}
+html[data-motion="calm"][data-menu="open"] main {
+  transition: none;
+}
+.site-header {
+  transition: opacity 200ms var(--ease-wipe);
+}
+html[data-menu="open"] .site-header {
+  opacity: 0;
+}
+@keyframes hold-safety {
+  to {
+    opacity: 1;
+  }
+}
+
+/* calm / reduced motion: no animation anywhere (the board freezes to a still frame in JS) */
+html[data-motion="calm"] *,
+html[data-motion="calm"] *::before,
+html[data-motion="calm"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  transition-delay: 0s !important;
+  scroll-behavior: auto !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* forced colours: 1 px currentColor rules, no inverse-video block, the h1 at full opacity */
+@media (forced-colors: active) {
+  .sheet,
+  .sheet::before,
+  .btn,
+  .cell,
+  .control,
+  .link-row,
+  .link-rows,
+  .now-cell,
+  .sheet-header,
+  .table th,
+  .table td {
+    border-color: CanvasText;
+    background-color: Canvas;
+  }
+  .window__rect,
+  .meter__dot {
+    stroke: CanvasText;
+  }
+  .wipe::before {
+    display: none;
+  }
+  .wipe:hover,
+  .wipe:focus-visible,
+  .wipe:hover .wipe-muted,
+  .wipe:focus-visible .wipe-muted {
+    color: inherit;
+  }
+  .wipe:focus-visible {
+    outline-offset: 3px;
+  }
+  .hero h1 {
+    opacity: 1 !important;
+  }
+}
+
+/* print: the page is its sheets */
+@media print {
+  .board-root,
+  .site-header,
+  .skip-link,
+  .controls,
+  .gap,
+  .window__frame,
+  [data-board-tail] {
+    display: none !important;
+  }
+  .sheet {
+    background-image: none;
+    border-color: #000;
+    break-inside: avoid;
+  }
+  .hold {
+    opacity: 1 !important;
+  }
+}

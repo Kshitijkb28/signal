@@ -1,0 +1,291 @@
+/* Board Menu — a native <dialog> over the machine (docs/DESIGN.md §6.2).
+   Phone: 38svh of bare board above a list sheet that scrolls internally.
+   Desktop: a 55 % paper sheet beside 45 % of board that spells the hovered or focused item.
+   Every selector is anchored on a local class (CSS Modules run in pure mode); the document-level rules the menu
+   needs (page scroll lock, main fade, header fade) are hoisted from BoardMenu.tsx. */
+
+.dialog {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  overflow: hidden;
+  overscroll-behavior: contain;
+  /* a drag on the transparent board must not pan the page behind (iOS ignores the root's overflow lock); zoom stays */
+  touch-action: pinch-zoom;
+  --ease-expo-in: cubic-bezier(0.7, 0, 0.84, 0);
+}
+.dialog::backdrop {
+  background: transparent;
+}
+
+/* the grid: an empty cell is the "backdrop" (the board shows through) and closes the menu on click */
+.layout {
+  display: grid;
+  grid-template-rows: 38svh minmax(0, 1fr);
+  width: 100%;
+  height: 100%;
+}
+
+/* sits exactly where the readout is, so the readout reads as a toggle */
+.close {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  left: max(16px, env(safe-area-inset-left));
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  height: 44px;
+  padding-inline: 10px;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  white-space: nowrap;
+  transition: background-color 120ms var(--ease-wipe);
+}
+.close:hover,
+.close:active {
+  background: var(--paper-2);
+}
+
+/* the sheet's slot is the registered board region: it holds the sheet's final geometry while the sheet itself
+   slides in and out of it */
+.slot {
+  grid-row: 2;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  min-height: 0;
+}
+.sheet {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background-color: var(--paper);
+  background-image: radial-gradient(circle at 50% 50%, var(--line) 0.75px, transparent 0.8px);
+  background-size: var(--pitch) var(--pitch);
+  border-top: 1px solid var(--ink);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y pinch-zoom;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+@media (min-width: 64rem) {
+  .layout {
+    grid-template-rows: none;
+    grid-template-columns: 55% 45%;
+  }
+  .slot {
+    grid-row: auto;
+    grid-column: 1;
+  }
+  .sheet {
+    border-top: 0;
+    border-right: 1px solid var(--ink);
+    /* clear the readout-sized close control */
+    padding-top: calc(max(12px, env(safe-area-inset-top)) + 44px + 40px);
+  }
+}
+
+/* ⌘K type-to-filter */
+.filter {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 56px;
+  margin: 0;
+  padding-inline: max(var(--gutter), env(safe-area-inset-left)) max(var(--gutter), env(safe-area-inset-right));
+  border: 0;
+  border-bottom: 1px solid var(--ink);
+  border-radius: 0;
+  appearance: none;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-martian), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 1rem; /* ≥ 16 px: iOS never zooms the sheet */
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  outline-offset: -3px;
+}
+.filter::placeholder {
+  color: var(--ink-3);
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  perspective: 1000px;
+}
+.row {
+  transform-origin: 50% 0;
+  backface-visibility: hidden;
+}
+.item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 12px;
+  box-sizing: border-box;
+  min-height: 56px;
+  padding-inline: max(var(--gutter), env(safe-area-inset-left)) max(var(--gutter), env(safe-area-inset-right));
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+}
+@media (min-width: 64rem) {
+  .item {
+    min-height: 64px;
+  }
+}
+.item:focus-visible {
+  outline-offset: -3px;
+}
+/* inverse video: this module is unlayered, so its `.item` colour would beat the layered global `.wipe:hover` rule and
+   leave the label ink-on-ink (invisible in both themes); restate the wipe colour here with the same specificity */
+.item:focus-visible,
+.item:focus-visible .label {
+  color: var(--paper);
+}
+@media (hover: hover) {
+  .item:hover,
+  .item:hover .label {
+    color: var(--paper);
+  }
+}
+@media (forced-colors: active) {
+  .item:hover,
+  .item:focus-visible,
+  .item:hover .label,
+  .item:focus-visible .label {
+    color: inherit;
+  }
+}
+/* colour comes from the global .wipe-muted helper (ink-2, paper under the wipe) */
+.index {
+  font-family: var(--font-martian), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--t-mono);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+.label {
+  font-family: var(--font-archivo), system-ui, sans-serif;
+  font-size: var(--t-2);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+.link .label {
+  font-size: var(--t-1);
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+.trail {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 16px;
+}
+.marker {
+  width: 8px;
+  height: 8px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+}
+.markerOn {
+  background: currentColor;
+}
+
+.empty {
+  margin: 0;
+  padding: 20px max(var(--gutter), env(safe-area-inset-left));
+  font-family: var(--font-martian), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--t-mono);
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+
+/* live telemetry: ≥ 12 px for --ink-3 */
+.footer {
+  margin: auto 0 0;
+  padding: 20px max(var(--gutter), env(safe-area-inset-left)) 0 max(var(--gutter), env(safe-area-inset-left));
+  font-family: var(--font-martian), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--t-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: var(--ink-3);
+}
+
+/* ---------- motion: the sheet drops in and flaps its rows; the page-turn lifts it away.
+   The entrance is scoped to the [data-entering] window so rows re-ordered by the filter never replay it. ---------- */
+@keyframes sheet-in {
+  from {
+    transform: translateY(-100dvh);
+  }
+}
+@keyframes sheet-out {
+  to {
+    transform: translateY(-100dvh);
+  }
+}
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: rotateX(-90deg);
+  }
+}
+@keyframes row-out {
+  to {
+    opacity: 0;
+    transform: rotateX(-90deg);
+  }
+}
+.dialog[data-entering] .sheet {
+  animation: sheet-in 400ms var(--ease-reveal) both;
+}
+.dialog[data-entering] .row {
+  animation: row-in 220ms var(--ease-settle) both;
+  animation-delay: calc(120ms + var(--i, 0) * 30ms);
+}
+.dialog[data-closing] .sheet {
+  animation: sheet-out 400ms var(--ease-expo-in) forwards;
+}
+.dialog[data-closing] .row {
+  animation: row-out 220ms var(--ease-flap-in) forwards;
+  animation-delay: calc(var(--i, 0) * 30ms);
+}
+
+/* calm / reduced motion: nothing moves, nothing is held back by a delay */
+html[data-motion="calm"] .dialog .sheet,
+html[data-motion="calm"] .dialog .row {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dialog .sheet,
+  .dialog .row {
+    animation: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .close,
+  .sheet,
+  .filter,
+  .item {
+    border-color: CanvasText;
+  }
+}

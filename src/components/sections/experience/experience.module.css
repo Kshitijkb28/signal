@@ -1,0 +1,139 @@
+/* Experience — docs/DESIGN.md §7.3 */
+
+.entries {
+  margin-top: 40px;
+}
+
+.entry {
+  padding-block: 32px;
+  scroll-margin-top: var(--header-h);
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+/* phones read the period first */
+.period {
+  order: -1;
+  margin: 0;
+  color: var(--ink-2);
+}
+.company {
+  margin: 0;
+  font-size: var(--t-2);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+.companyLink {
+  display: inline-block;
+  min-height: 44px;
+}
+/* the company stamp (Stamp.tsx): an ink block carrying the name in paper sweeps over the type and recedes */
+.stamp {
+  position: relative;
+  display: inline-block;
+}
+.stampBlock {
+  position: absolute;
+  inset: 0;
+  color: var(--paper);
+  background-color: var(--ink);
+  clip-path: inset(0% 100% 0% 0%);
+  pointer-events: none;
+}
+.roleLine {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 8px;
+  margin: 0;
+  font-weight: 500;
+}
+.sep {
+  color: var(--ink-2);
+}
+
+.body {
+  display: grid;
+  gap: 24px;
+  min-width: 0;
+  margin-top: 24px;
+}
+
+/* phone stand-in for the tape: a dotted rule between entries */
+.rule {
+  display: block;
+  width: 100%;
+  height: 8px;
+  margin-block: 8px;
+}
+.rule line {
+  stroke: var(--ink);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 0 8;
+}
+
+/* the exposed 56 px column left of the sheet (≥ lg) where the board draws the tape; U1's global `.strip`
+   positions it, this module lays out the year labels */
+.strip {
+  display: none;
+}
+/* the year labels sit on small paper chips so the board's tape column never runs through the type */
+.stripLabel {
+  padding: 2px 4px;
+  font-family: var(--font-martian), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--ink-2);
+  background-color: var(--paper);
+  transition: var(--theme-tx);
+}
+
+@media (min-width: 64rem) {
+  .entry {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: 24px;
+    padding-block: 48px;
+  }
+  .entry ~ .entry {
+    border-top: 1px solid var(--line);
+  }
+  .side {
+    grid-column: 1 / 5;
+    position: sticky;
+    top: 76px;
+    align-self: start;
+  }
+  .period {
+    order: 0;
+  }
+  .roleLine {
+    flex-direction: column;
+    gap: 2px;
+  }
+  .sep {
+    display: none;
+  }
+  .body {
+    grid-column: 5 / -1;
+    margin-top: 0;
+  }
+  .rule {
+    display: none;
+  }
+  .strip {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    touch-action: pan-y;
+  }
+}

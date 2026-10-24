@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Signal board harness</title>
+    <link rel="icon" href="data:," />
+    <style>
+      :root {
+        --paper: #f3efe7;
+        --ink: #121212;
+        --signal: #1f2fd3;
+      }
+      html[data-theme="night"] {
+        --paper: #101010;
+        --ink: #ede8de;
+        --signal: #7f8bff;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: var(--paper);
+        color: var(--ink);
+        font: 11px ui-monospace, Menlo, monospace;
+        overflow: hidden;
+      }
+      canvas {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        display: block;
+      }
+      /* a translucent "sheet": anything the renderer painted underneath would show through */
+      .sheet {
+        position: fixed;
+        left: 0;
+        width: 100vw;
+        background: color-mix(in srgb, var(--paper) 55%, transparent);
+        border-top: 1px solid var(--ink);
+        border-bottom: 1px solid var(--ink);
+        box-sizing: border-box;
+      }
+      .hole {
+        position: fixed;
+        border: 1px dashed var(--signal);
+        box-sizing: border-box;
+      }
+      .excl {
+        position: fixed;
+        border: 1px dashed var(--ink);
+        box-sizing: border-box;
+      }
+      .tag {
+        position: absolute;
+        left: 0;
+        top: 0;
+        padding: 2px 4px;
+        background: var(--ink);
+        color: var(--paper);
+      }
+      #status {
+        position: fixed;
+        right: 8px;
+        bottom: 8px;
+        padding: 4px 6px;
+        background: var(--ink);
+        color: var(--paper);
+        white-space: pre;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="board"></canvas>
+    <div id="chrome"></div>
+    <div id="status">booting</div>
+    <script type="module" src="./scene.js"></script>
+  </body>
+</html>

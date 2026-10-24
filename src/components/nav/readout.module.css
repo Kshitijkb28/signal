@@ -1,0 +1,62 @@
+/* Readout — the fixed split-flap display top-left and its progress strip (docs/DESIGN.md §6.1). */
+
+.root {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  left: max(16px, env(safe-area-inset-left));
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  /* the two 44 px controls top-right own 112 px (16 + 44 + 8 + 44); a long message never runs into them */
+  max-width: calc(100vw - max(16px, env(safe-area-inset-left)) - max(16px, env(safe-area-inset-right)) - 112px);
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  height: 44px;
+  max-width: 100%;
+  padding-inline: 10px;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  overflow: hidden;
+  white-space: nowrap;
+  transition:
+    background-color 120ms var(--ease-wipe),
+    border-color 200ms var(--ease-wipe),
+    color 200ms var(--ease-wipe);
+}
+.button:hover,
+.button:active {
+  background: var(--paper-2);
+}
+
+.strip {
+  display: flex;
+  gap: 6px;
+  padding-left: 1px;
+}
+.disc {
+  width: 6px;
+  height: 6px;
+  border: 1px solid var(--ink);
+  border-radius: 50%;
+  transition: background-color 180ms var(--ease-wipe);
+}
+.discOn {
+  background: var(--ink);
+}
+
+@media (forced-colors: active) {
+  .button,
+  .disc {
+    border-color: CanvasText;
+  }
+  .discOn {
+    background: CanvasText;
+  }
+}

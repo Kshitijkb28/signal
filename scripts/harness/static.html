@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Static field check</title>
+    <link rel="icon" href="data:," />
+    <!-- the real module CSS, served unprocessed by board-harness.mjs (the :global() rule is simply dropped) -->
+    <link rel="stylesheet" href="./StaticField.module.css" />
+    <style>
+      :root {
+        --paper: #f3efe7;
+        --ink: #121212;
+        --ease-wipe: cubic-bezier(0.45, 0, 0.55, 1);
+      }
+      html,
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+      }
+      .hero {
+        position: relative;
+        min-height: 100svh;
+        overflow: hidden;
+      }
+      h1 {
+        position: relative;
+        margin: 14svh 16px 0;
+        font: 800 18vw/0.88 system-ui, sans-serif;
+        letter-spacing: -0.035em;
+      }
+      @media (min-width: 64rem) {
+        h1 {
+          font-size: clamp(3rem, 11vw, 10.5rem);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <section class="hero">
+      <div class="field" id="field" aria-hidden="true" data-static-field></div>
+      <h1>KSHITIJ<br />BHARDWAJ</h1>
+    </section>
+    <script type="module">
+      import { fnv1a, mulberry32 } from "./out/lib/hash.js";
+      // mirrors StaticField.tsx buildMask(): same seed, same reading order, same density and radius
+      const COLS = 72;
+      const ROWS = 128;
+      const rnd = mulberry32(fnv1a("signal"));
+      let circles = "";
+      let n = 0;
+      for (let row = 0; row < ROWS; row++) {
+        for (let col = 0; col < COLS; col++) {
+          if (rnd() < 0.03) {
+            circles += `<circle cx='${col + 0.5}' cy='${row + 0.5}' r='0.44'/>`;
+            n++;
+          }
+        }
+      }
+      const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 ${COLS} ${ROWS}'>${circles}</svg>`;
+      const mask = `url("data:image/svg+xml,${svg.replace(/</g, "%3C").replace(/>/g, "%3E").replace(/#/g, "%23")}")`;
+      const field = document.getElementById("field");
+      field.style.webkitMaskImage = mask;
+      field.style.maskImage = mask;
+      requestAnimationFrame(() => {
+        const cs = getComputedStyle(field);
+        window.__harness = { done: true, errors: [], circles: n, pitchCss: cs.getPropertyValue("--sf-pitch").trim(), maskSize: cs.maskSize };
+      });
+    </script>
+  </body>
+</html>

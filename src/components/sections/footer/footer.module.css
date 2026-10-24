@@ -1,0 +1,71 @@
+/* Footer — docs/DESIGN.md §7.8: a slim last sheet, then the page ends on the bare machine. */
+
+footer.footer {
+  padding-block: 24px;
+}
+
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 24px;
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
+}
+.col {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 6px;
+  min-height: 44px;
+  margin: 0;
+}
+.name {
+  font-weight: 700;
+}
+.links {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 20px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+.icon {
+  width: 1em;
+  height: 1em;
+}
+
+/* the bare board below the last sheet */
+.tail {
+  box-sizing: content-box;
+  height: 18vh;
+  padding-bottom: env(safe-area-inset-bottom);
+  touch-action: pan-y;
+}
+
+@media (min-width: 64rem) {
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: 24px;
+    padding-bottom: 0;
+  }
+  .links {
+    width: auto;
+    justify-content: flex-end;
+  }
+  .tail {
+    height: 24vh;
+  }
+}

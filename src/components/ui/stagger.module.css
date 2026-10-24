@@ -1,0 +1,14 @@
+/* Staggered rows (Stagger.tsx). The hold exists only for JS users with motion on: "pending" (server-rendered) carries
+   the 3 s safety timer that reveals the rows should JS never arrive, "armed" (hydrated) waits for the observer, and
+   "done" plays the entrance through Web Animations. Rows are the list's direct children. */
+html[data-js][data-motion="full"] .list:is([data-in="pending"], [data-in="armed"]) > * {
+  opacity: 0;
+}
+html[data-js][data-motion="full"] .list[data-in="pending"] > * {
+  animation: stagger-safety 1ms linear 3s forwards;
+}
+@keyframes stagger-safety {
+  to {
+    opacity: 1;
+  }
+}

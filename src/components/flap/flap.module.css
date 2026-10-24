@@ -1,0 +1,175 @@
+/*
+  Split-flap cells (docs/DESIGN.md §3.2, §7.5, §7.7, §8, §13 risk 7).
+
+  One cell is four half-tiles over a hinge. Two static halves show the glyph at rest. Two moving halves are hidden
+  at rest and perform the flip: the moving top half falls 0 → −90° showing the OLD glyph (revealing the static top
+  half, already set to the NEW glyph), then the moving bottom half settles 90° → 0 carrying the NEW glyph over the
+  static bottom half. Glyphs are generated content (`attr(data-glyph)`) so a cell is five elements, not nine.
+
+  Geometry (Martian Mono, measured): ascender 1000 / descender −200 / cap height 800 / advance 750 at wdth 112.5.
+  A 1.3em cell with a 1.3em line box puts the baseline at 1.05em and the cap centre at 0.65em — the hinge.
+*/
+
+.root {
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: middle;
+  font-family: var(--font-martian), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 700;
+  font-stretch: 112.5%;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  line-height: 1;
+  text-transform: none;
+  --flap-tile: var(--paper-2);
+  --flap-glyph: var(--ink);
+}
+
+/* size presets (§3.2); the email preset is paper on ink, every other preset is ink on a sunken tile */
+.readout {
+  font-size: 0.8rem;
+}
+.title {
+  font-size: clamp(1.6rem, 1rem + 3vw, 3.2rem);
+}
+.board {
+  font-size: 0.95rem;
+}
+.email {
+  font-size: 0.95rem;
+  --flap-tile: var(--ink);
+  --flap-glyph: var(--paper);
+}
+.menu {
+  font-size: 1rem;
+  --flap-tile: var(--paper);
+}
+@media (min-width: 64rem) {
+  .board {
+    font-size: 1.05rem;
+  }
+  .email {
+    font-size: 1.1rem;
+  }
+}
+
+.cells {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: max(1px, 0.06em);
+  max-width: 100%;
+  vertical-align: top;
+}
+
+.cell {
+  position: relative;
+  display: block;
+  flex: none;
+  width: 0.72em;
+  height: 1.3em;
+  color: var(--flap-glyph);
+  contain: layout paint;
+  perspective: 10em;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* the hinge: a border rather than a background so it survives forced colours */
+.cell::after {
+  content: "";
+  position: absolute;
+  inset: calc(50% - 0.5px) 0 auto 0;
+  height: 0;
+  border-top: 1px solid var(--line);
+  z-index: 3;
+  pointer-events: none;
+}
+
+.half {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 50%;
+  overflow: hidden;
+  background-color: var(--flap-tile);
+  transition:
+    background-color 200ms var(--ease-wipe),
+    color 200ms var(--ease-wipe);
+}
+.half::before {
+  content: attr(data-glyph);
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 200%;
+  line-height: 1.3em;
+  white-space: nowrap;
+}
+.top {
+  top: 0;
+  transform-origin: 50% 100%;
+}
+.bottom {
+  bottom: 0;
+  transform-origin: 50% 0;
+}
+.bottom::before {
+  top: -100%;
+}
+
+/* the moving halves exist only while a flip runs; will-change is scoped to that window */
+.moving {
+  visibility: hidden;
+  z-index: 2;
+}
+.cell[data-animating] .moving {
+  visibility: visible;
+  will-change: transform;
+}
+
+/*
+  animate="enter" hold: glyphs are hidden only for JS users (html[data-js], set by the pre-paint script) until the
+  scheduler flips them in; a 3 s safety timer reveals them if the scheduler never fires. Users without JS see the
+  final glyphs at 0 ms. FlapText removes the attribute as soon as it takes over.
+*/
+html[data-js] .root[data-flap-pending] .half::before {
+  opacity: 0;
+  animation: flap-safety 1ms linear 3s forwards;
+}
+@keyframes flap-safety {
+  to {
+    opacity: 1;
+  }
+}
+
+/* word tiles (phone departure board, §7.5): one tile per word, sized by an invisible copy of the committed word
+   (data-word, React's), not the glyph in flight, so a tile blanked for its entrance never collapses and reflows the row */
+.words .cells {
+  gap: 4px 6px;
+}
+.words .cell {
+  width: auto;
+  height: max(1.3em, 32px);
+  padding-inline: 0.4em;
+}
+.words .cell::before {
+  content: attr(data-word);
+  display: block;
+  visibility: hidden;
+  line-height: 1.3em;
+  white-space: nowrap;
+}
+
+@media (forced-colors: active) {
+  .half {
+    background-color: Canvas;
+    color: CanvasText;
+  }
+  .cell::after {
+    border-top-color: CanvasText;
+  }
+}
